@@ -24,8 +24,13 @@ Use getFinals to do the following:
 hint - you should be looking at the stage key inside of the objects
 */
 
-function getFinals(/* code here */) {
-   /* code here */
+function getFinals(data) {
+    data.filter((game) => {
+        if(game.stage == 'Final') {
+            return game;
+        }
+    });
+    return data; 
 }
 
 
@@ -36,10 +41,14 @@ Use the higher-order function called getYears to do the following:
 2. Receive a callback function getFinals from task 2 
 3. Return an array called years containing all of the years in the getFinals data set*/
 
-function getYears(/* code here */) {
-    /* code here */
+function getYears(data, _getFinals) {
+    let finals = _getFinals(data);
+    let years = [];
+    finals.map((game) => {
+        years.push(game.Year);
+    });
+    return years;
 }
-
 
 
 /* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 Task 4: 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀
@@ -49,10 +58,19 @@ Use the higher-order function getWinners to do the following:
 3. Determines the winner (home or away) of each `finals` game. 
 4. Returns the names of all winning countries in an array called `winners` */ 
 
-function getWinners(/* code here */) {
-    /* code here */
-}
+function getWinners(data, _getFinals) {
+    let winners = [];
+    let finals = _getFinals(data);
+    finals.forEach((game) => {
+         if(game['Home Team Goals'] > game['Away Team Goals']) {
+            winners.push(game['Home Team Name']);
+         } else {
+            winners.push(game['Away Team Name']);
+         }
+    });
 
+    return winners;
+}
 
 
 /* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 Task 5: 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 
@@ -64,11 +82,19 @@ Use the higher-order function getWinnersByYear to do the following:
 
 hint: the strings returned need to exactly match the string in step 4.
  */
-
-function getWinnersByYear(/* code here */) {
-    /* code here */
+function getWinnersByYear(data, _getYears, _getWinners) {
+    // We have to pass in the global function getFinals here, because we aren't recieving the
+    // data from our parameters
+    let years = _getYears(data, getFinals);
+    let winners = _getWinners(data, getFinals);
+    
+    let strings = [];
+    for(let i = 0; i < years.length; i++) {
+        strings.push(`In ${years[i]}, ${winners[i]} won the world cup!`)
+    }
+    
+    return strings;
 }
-
 
 
 /* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 Task 6: 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀
@@ -81,12 +107,20 @@ Use the higher order function getAverageGoals to do the following:
  Example of invocation: getAverageGoals(getFinals(fifaData));
 */
 
-function getAverageGoals(/* code here */) {
-   /* code here */
+function getAverageGoals(_getFinals) {
+   let finals = _getFinals;
+
+   // Total up our goals
+   let total = finals.reduce((accum, game) => {
+        return accum + (game['Home Team Goals'] + game['Away Team Goals']);
+    }, 0);
+
+    // Get the average with division
+    let average = total / finals.length;
+
+    // Round and return the average
+    return average.toFixed(2);
 }
-
-
-
 
 /// 🥅 STRETCH 🥅 ///
 
@@ -96,13 +130,35 @@ Create a function called `getCountryWins` that takes the parameters `data` and `
 Hint: Investigate your data to find "team initials"!
 Hint: use `.reduce` */
 
-function getCountryWins(/* code here */) {
+function getCountryWins(data, initials) {
+    let wins = data.reduce((accum, game) => {
+        if(game['Stage'] !== 'Final') {
+            return accum;
+        }
 
-    /* code here */
+        let team, other = 0;
+        let home = game['Home Team Goals'];
+        let away = game['Away Team Goals'];
 
+        if(game['Home Team Initials'] === initials) {
+            team = home;
+            other = away;
+        } else if(game['Away Team Goals'] === initials) {
+            team = away;
+            other = home;
+        } else {
+            return accum;
+        }
+
+        if(team > other) {
+            return accum + 1;
+        }
+    }, 0);
+    return wins;
 }
 
-
+console.log('------------------------------');
+console.log(getCountryWins(fifaData, 'ITA'));
 
 /* 💪💪💪💪💪 Stretch 2: 💪💪💪💪💪 
 Write a function called getGoals() that accepts a parameter `data` and returns the team with the most goals score per appearance (average goals for) in the World Cup finals */
